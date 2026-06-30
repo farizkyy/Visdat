@@ -1,0 +1,6 @@
+[theme]
+primaryColor="#FF4B4B"
+backgroundColor="#0E1117"
+secondaryBackgroundColor="#F1F5F9" # Ini warna sidebar abu-abu lu
+textColor="#FAFAFA" # Ini warna teks UTAMA (yang di kanan)
+font="sans serif"
