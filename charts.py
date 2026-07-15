@@ -7,30 +7,64 @@ import pandas as pd
 from config import COLORS, CHART_COLORSCALE, HEATMAP_COLORSCALE
 from utils import LABEL_MAP, fmt
 
+
 def _apply_standard_layout(fig, height=None):
-    """Terapkan standar visual premium ke figure."""
+
+    chart_text = "#E2E8F0"  # light slate
+    chart_tick = "#F8FAFC"  # hampir putih
+
     layout_updates = dict(
+        template="plotly_dark",
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=12, color=COLORS["text_main"]),
+        font=dict(family="Inter, sans-serif", size=12, color=chart_text),
         margin=dict(l=20, r=20, t=40, b=20),
+        title_font=dict(color=chart_text),
         xaxis=dict(
             showgrid=False,
             zeroline=False,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
+            title_font=dict(size=14, color=chart_tick),
+            tickfont=dict(size=12, color=chart_text),
+            color=chart_tick,
         ),
         yaxis=dict(
             showgrid=False,
             zeroline=False,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
+            title_font=dict(size=14, color=chart_tick),
+            tickfont=dict(size=12, color=chart_text),
+            color=chart_tick,
         ),
     )
+
     if height:
         layout_updates["height"] = height
+
+    title = getattr(fig.layout, "title", None)
+    if title is not None:
+        try:
+            t = title.text
+            if t is None or str(t).strip().lower() in {"none", "undefined"}:
+                fig.update_layout(title="")
+        except Exception:
+            pass
+
+    annotations = getattr(fig.layout, "annotations", None)
+    if annotations:
+        for a in annotations:
+            try:
+                txt = a.get("text") if isinstance(a, dict) else getattr(a, "text", None)
+                if txt is None or str(txt).strip().lower() in {"none", "undefined"}:
+                    if isinstance(a, dict):
+                        a["text"] = ""
+                    else:
+                        a.text = ""
+            except Exception:
+                continue
+
     fig.update_layout(**layout_updates)
     return fig
+
+
 
 def scatter_study_gpa(df):
     fig = px.scatter(
@@ -56,19 +90,6 @@ def scatter_study_gpa(df):
         ),
     )
 
-    z = np.polyfit(df["Hours_Studied"].dropna(), df["Final_Score"].dropna(), 1)
-    p = np.poly1d(z)
-    x_line = np.linspace(df["Hours_Studied"].min(), df["Hours_Studied"].max(), 100)
-    fig.add_trace(
-        go.Scatter(
-            x=x_line,
-            y=p(x_line),
-            mode="lines",
-            name="Tren",
-            line=dict(color=COLORS["accent2"], width=2.5, dash="dash"),
-            hovertemplate="<b>Tren:</b> y = " + f"{z[0]:.2f}x + {z[1]:.2f}<extra></extra>",
-        )
-    )
     fig.update_layout(
         hovermode="closest",
         coloraxis_colorbar=dict(
@@ -78,8 +99,11 @@ def scatter_study_gpa(df):
         ),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
+
     fig = _apply_standard_layout(fig)
     return fig
+
+
 
 def box_extracurricular_gpa(df):
     fig = go.Figure()
@@ -153,6 +177,7 @@ def box_extracurricular_gpa(df):
     fig = _apply_standard_layout(fig, height=500)
     return fig
 
+
 def heatmap_correlation(df, cols):
     corr_matrix = df[cols].corr()
     corr_matrix_id = corr_matrix.rename(columns=LABEL_MAP, index=LABEL_MAP)
@@ -167,7 +192,8 @@ def heatmap_correlation(df, cols):
             zmax=1,
             text=np.round(corr_matrix_id.values, 2),
             texttemplate="%{text}",
-            textfont={"size": 11, "family": "Inter, sans-serif", "color": "white"},
+            textfont={"size": 11, "family": "Inter, sans-serif"},
+
             hovertemplate="<b>%{x}</b> ↔ <b>%{y}</b><br>Korelasi: %{z:.2f}<extra></extra>",
             colorbar=dict(
                 title="Korelasi",
@@ -186,12 +212,14 @@ def heatmap_correlation(df, cols):
     fig = _apply_standard_layout(fig)
     return fig
 
+
 def hist_gpa_distribution(df):
     fig = px.histogram(
         df,
         x="Final_Score",
         color="GPA_Category",
         color_discrete_sequence=[COLORS["accent2"], COLORS["accent4"], COLORS["accent"], COLORS["accent3"]],
+        category_orders={"GPA_Category": ["Rendah", "Sedang", "Baik", "Sangat Baik"]},
         labels={"Final_Score": "Final_Score", "count": "Jumlah Mahasiswa"},
         opacity=0.85,
         nbins=30,
@@ -210,6 +238,7 @@ def hist_gpa_distribution(df):
     )
     fig = _apply_standard_layout(fig)
     return fig
+
 
 def bubble_sleep_stress_gpa(df):
     fig = px.scatter(
@@ -247,6 +276,7 @@ def bubble_sleep_stress_gpa(df):
     fig = _apply_standard_layout(fig)
     return fig
 
+
 def bar_gpa_by_gender_study(df):
     avg = df.groupby(["Gender", "Study_Method"], observed=True)["Final_Score"].mean().reset_index()
 
@@ -275,6 +305,7 @@ def bar_gpa_by_gender_study(df):
     )
     fig = _apply_standard_layout(fig)
     return fig
+
 
 def violin_anxiety_job(df):
     fig = go.Figure()
@@ -315,17 +346,37 @@ def violin_anxiety_job(df):
     fig = _apply_standard_layout(fig)
     return fig
 
+
 def radar_profile(df):
-    # Tentukan threshold
+
     gpa_median = df["Final_Score"].median()
     high = df[df["Final_Score"] >= gpa_median]
     low = df[df["Final_Score"] < gpa_median]
-
-    dimensions = ["Sleep_Hours", "Stress_Level", "Hours_Studied", "Screen_Time", "Exam_Anxiety_Score"]
+    
+    dimensions = [
+        "Sleep_Hours",
+        "Stress_Level",
+        "Hours_Studied",
+        "Screen_Time",
+        "Exam_Anxiety_Score",
+    ]
     labels = ["Jam Tidur", "Stres", "Jam Belajar", "Waktu Layar", "Kecemasan"]
+    units = ["jam", "skor", "jam", "jam", "skor"]
 
-    def normalize(series):
-        return (series - series.min()) / (series.max() - series.min())
+    mins = {d: float(df[d].min()) for d in dimensions}
+    maxs = {d: float(df[d].max()) for d in dimensions}
+    ranges = {d: (maxs[d] - mins[d]) for d in dimensions}
+
+    def norm_value(x: float, d: str) -> float:
+        r = ranges[d]
+        if r == 0:
+            return 0.0
+        return (x - mins[d]) / r
+
+    def group_stats(subset, d: str) -> tuple[float, float]:
+        raw_mean = float(subset[d].mean())
+        norm_mean = float(norm_value(raw_mean, d))
+        return raw_mean, norm_mean
 
     fig = go.Figure()
 
@@ -333,19 +384,36 @@ def radar_profile(df):
         ("GPA Tinggi", high, COLORS["accent"]),
         ("GPA Rendah", low, COLORS["accent2"]),
     ]:
-        values = [normalize(subset[d]).mean() for d in dimensions]
-        values += [values[0]]
-        rgb = f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.2)"
+        raw_means = [group_stats(subset, d)[0] for d in dimensions]
+        norm_means = [group_stats(subset, d)[1] for d in dimensions]
+
+        r_vals = norm_means + [norm_means[0]]
+        theta_vals = labels + [labels[0]]
+
+        raw_cycle = raw_means + [raw_means[0]]
+        units_cycle = units + [units[0]]
+
+        rgb = (
+            f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.2)"
+        )
+
+        custom = list(zip(raw_cycle, units_cycle))
 
         fig.add_trace(
             go.Scatterpolar(
-                r=values,
-                theta=labels + [labels[0]],
+                r=r_vals,
+                theta=theta_vals,
                 fill="toself",
                 name=name,
                 line=dict(color=color, width=2.5),
                 fillcolor=rgb,
-                hovertemplate=f"<b>{name}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>",
+                customdata=custom,
+                hovertemplate=(
+                    f"<b>{name}</b><br>"
+                    "%{theta}<br>"
+                    "Normalisasi (0..1): %{r:.2f}<br>"
+                    "Nilai asli: %{customdata[0]:.2f} %{customdata[1]}<extra></extra>"
+                ),
             )
         )
 
@@ -365,68 +433,122 @@ def radar_profile(df):
             bgcolor="rgba(0,0,0,0)",
         ),
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5,
+        ),
         margin=dict(l=40, r=40, t=40, b=40),
         height=500,
+        annotations=[
+            dict(
+                text=(
+                    "<b>Catatan:</b> Radar memakai <i>normalisasi 0..1</i> untuk semua metrik agar bias satuan (jam vs skor) hilang. "
+                    "Bentuk polygon adalah pola relatif. Nilai asli per metrik tersedia di hover (rata-rata kelompok)."
+                ),
+                x=0.5,
+                y=-0.12,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+                font=dict(size=11, color=COLORS["text_muted"]),
+            )
+        ],
     )
+
     fig = _apply_standard_layout(fig)
     return fig
+
 
 def pie_sleep_category(df):
-    counts = df["Sleep_Category"].value_counts().reset_index()
-    counts.columns = ["Kategori", "Jumlah"]
+    # NOTE: nama fungsi dipertahankan agar kompatibel dengan `main.py`.
+    order = ["Kurang Tidur", "Cukup", "Baik", "Banyak Tidur"]
 
-    fig = px.pie(
+    counts = (
+        df["Sleep_Category"]
+        .value_counts()
+        .reindex(order)
+        .fillna(0)
+        .reset_index()
+    )
+    counts.columns = ["Sleep_Category", "Jumlah"]
+
+    fig = px.bar(
         counts,
-        names="Kategori",
-        values="Jumlah",
-        color="Kategori",
+        x="Jumlah",
+        y="Sleep_Category",
+        orientation="h",
+        color="Sleep_Category",
         color_discrete_sequence=[COLORS["accent2"], COLORS["accent"], COLORS["accent3"], COLORS["accent4"]],
-        hole=0.5,
-        height=400,
+        labels={"Jumlah": "Jumlah Mahasiswa", "Sleep_Category": "Kategori Jam Tidur"},
+        height=420,
     )
+
     fig.update_traces(
-        textinfo="percent+label",
-        textfont=dict(size=11, family="Inter, sans-serif"),
-        hovertemplate="<b>%{label}</b><br>Jumlah: %{value}<br>Persentase: %{percent}<extra></extra>",
-        marker=dict(line=dict(color="white", width=2)),
+        texttemplate="%{x}",
+        textposition="outside",
+        hovertemplate="<b>%{y}</b><br>Jumlah: %{x}<extra></extra>",
+        marker=dict(line=dict(width=1, color="white")),
+        textfont={},
     )
+
+
     fig.update_layout(
-        showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5),
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, title_font=dict(size=14), tickfont=dict(size=12)),
+        yaxis=dict(showgrid=False, zeroline=False, title_font=dict(size=14), tickfont=dict(size=12)),
+        margin=dict(l=20, r=20, t=40, b=20),
     )
+
     fig = _apply_standard_layout(fig)
     return fig
 
-def bar_diet_quality_gpa(df):
-    avg = df.groupby("Diet_Quality", observed=True)["Final_Score"].agg(["mean", "std", "count"]).reset_index()
-    avg.columns = ["Kualitas Diet", "Rata-rata GPA", "Std Dev", "Jumlah"]
 
-    fig = px.bar(
-        avg,
-        x="Kualitas Diet",
-        y="Rata-rata GPA",
-        error_y="Std Dev",
-        text="Jumlah",
-        color="Rata-rata GPA",
-        color_continuous_scale=CHART_COLORSCALE,
-        labels={"Kualitas Diet": "Kualitas Diet (0-2)", "Rata-rata GPA": "Rata-rata GPA"},
-        height=420,
-    )
-    fig.update_traces(
-        texttemplate="n=%{text}",
-        textposition="outside",
-        marker=dict(line=dict(width=1, color="white")),
-        hovertemplate=(
-            "<b>Kualitas Diet %{x}</b><br>"
-            "Rata-rata GPA: %{y:.2f}<br>"
-            "Jumlah: %{text}<extra></extra>"
-        ),
-    )
+def bar_diet_quality_gpa(df):
+    # NOTE: nama fungsi dipertahankan agar kompatibel dengan `main.py`.
+    categories = sorted(df["Diet_Quality"].dropna().unique())
+    neon_colors = [COLORS["accent2"], COLORS["accent"], COLORS["accent4"], COLORS["accent3"]]
+
+    fig = go.Figure()
+
+    for i, cat in enumerate(categories):
+        subset = df[df["Diet_Quality"] == cat]
+        color = neon_colors[i % len(neon_colors)]
+        fig.add_trace(
+            go.Box(
+                x=[str(cat)] * len(subset),
+                y=subset["Final_Score"],
+                name=f"{cat}",
+                marker_color=color,
+                boxpoints=False,
+                line=dict(color=color, width=2),
+                fillcolor=f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.15)",
+                hovertemplate=(
+                    f"<b>Kualitas Diet:</b> {cat}<br>"
+                    "<b>Nilai Akhir:</b> %{y:.2f}<extra></extra>"
+                ),
+            )
+        )
+
     fig.update_layout(
-        coloraxis_showscale=False,
-        xaxis=dict(showgrid=False, zeroline=False, dtick=1, title_font=dict(size=14), tickfont=dict(size=12)),
-        yaxis=dict(showgrid=False, zeroline=False, range=[0, 4.2], title_font=dict(size=14), tickfont=dict(size=12)),
+        height=420,
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+        ),
+        yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+        ),
+        showlegend=False,
+        boxmode="group",
+        margin=dict(l=20, r=20, t=40, b=20),
     )
-    _apply_standard_layout(fig)
+    fig = _apply_standard_layout(fig)
     return fig

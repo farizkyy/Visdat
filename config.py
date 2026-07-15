@@ -1,25 +1,19 @@
-"""
-Konfigurasi global, tema, styling CSS, dan palet warna untuk dashboard.
-"""
-
 import streamlit as st
 
-# ── Konfigurasi Halaman ──
 PAGE_CONFIG = {
     "page_title": "Dashboard Gaya Hidup Mahasiswa",
     "layout": "wide",
     "initial_sidebar_state": "expanded",
 }
 
-# ── Palet Warna Modern ──
 COLORS = {
-    "primary": "#0F172A",      # slate-900
-    "secondary": "#334155",    # slate-700
-    "accent": "#06B6D4",       # cyan-500
-    "accent2": "#F43F5E",      # rose-500
-    "accent3": "#10B981",      # emerald-500
-    "accent4": "#8B5CF6",      # violet-500
-    "bg_light": "#F8FAFC",     # slate-50
+    "primary": "#0F172A",
+    "secondary": "#334155",
+    "accent": "#06B6D4",
+    "accent2": "#F43F5E",
+    "accent3": "#10B981",
+    "accent4": "#8B5CF6",
+    "bg_light": "#F8FAFC",
     "bg_card": "#FFFFFF",
     "text_main": "#0F172A",
     "text_muted": "#64748B",
@@ -29,7 +23,6 @@ COLORS = {
 CHART_COLORSCALE = "Viridis"
 HEATMAP_COLORSCALE = "RdBu"
 
-# ── CSS Custom Final (Fix Sidebar Contrast) ──
 CSS_STYLE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -126,8 +119,5 @@ div.stPlotlyChart > div {
 """
 
 def apply_config():
-    """Terapkan konfigurasi halaman dan CSS."""
-    # set_page_config WAJIB dipanggil paling pertama di main.py 
-    # (Biasanya dipanggil lewat fungsi ini)
     st.set_page_config(**PAGE_CONFIG)
     st.markdown(CSS_STYLE, unsafe_allow_html=True)

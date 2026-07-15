@@ -1,10 +1,4 @@
-"""
-Helper functions dan mapping untuk dashboard.
-"""
-
-
 def arah_korelasi(corr):
-    """Interpretasi arah dan kekuatan korelasi."""
     if corr > 0.3:
         return "positif kuat"
     elif corr > 0.1:
@@ -33,5 +27,4 @@ LABEL_MAP = {
 
 
 def fmt(val, decimals=2):
-    """Format angka dengan presisi tetap."""
     return f"{val:.{decimals}f}"

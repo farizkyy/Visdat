@@ -1,7 +1,3 @@
-"""
-Fungsi untuk memuat, membersihkan, dan mentransformasi dataset.
-"""
-
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -31,8 +27,11 @@ def load_and_clean_data():
     df["Sleep_Hours"] = iqr_filter(df["Sleep_Hours"])
     df["Hours_Studied"] = iqr_filter(df["Hours_Studied"])
 
-    # Rekonstruksi kolom kategori dari one-hot encoding
+    if df["Final_Score"].max() <= 1.01:
+        df["Final_Score"] = df["Final_Score"] * 4.0
+
     df["Extracurricular"] = df["Extracurricular_Yes"].map({True: "Ya", False: "Tidak"})
+
 
     df["Gender"] = df.apply(
         lambda row: "Perempuan" if row.get("Gender_Female", False)
@@ -57,7 +56,6 @@ def load_and_clean_data():
         return "Lainnya"
     df["Study_Method"] = df.apply(get_study_method, axis=1)
 
-    # Buat kategori tambahan
     df["GPA_Category"] = pd.cut(
         df["Previous_GPA"],
         bins=[0, 2.5, 3.0, 3.5, 4.0],

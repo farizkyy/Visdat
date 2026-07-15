@@ -134,10 +134,7 @@ def generate_deep_insights(df):
     return insights
 
 def generate_comparative_analysis(df):
-    """
-    Analisis Komparatif: membandingkan kelompok mahasiswa.
-    Mengembalikan list of tuples: (text, alert_type)
-    """
+
     insights = []
 
     if "Extracurricular" in df.columns:
