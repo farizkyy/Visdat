@@ -4,15 +4,14 @@ from config import apply_config
 from data_loader import load_and_clean_data
 from charts import (
     scatter_study_gpa,
-    box_extracurricular_gpa,
     heatmap_correlation,
     hist_gpa_distribution,
     bubble_sleep_stress_gpa,
     bar_gpa_by_gender_study,
+
     violin_anxiety_job,
     radar_profile,
     pie_sleep_category,
-    bar_diet_quality_gpa,
 )
 from insights import (
     generate_deep_insights,
@@ -20,11 +19,9 @@ from insights import (
     generate_strategic_recommendations,
 )
 
-
 apply_config()
 
 df = load_and_clean_data()
-
 
 st.sidebar.header("Opsi Filter")
 
@@ -75,7 +72,6 @@ st.sidebar.download_button(
     mime="text/csv",
 )
 
-
 st.title("Dashboard Gaya Hidup Mahasiswa")
 st.caption("Eksplorasi interaktif hubungan antara tidur, stres, kebiasaan belajar, dan performa akademik.")
 st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
@@ -89,22 +85,16 @@ m5.metric("Rata-rata Kecemasan", f"{filtered_df['Exam_Anxiety_Score'].mean():.2f
 
 st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
 
-
 st_tabs = st.tabs(["Performa Akademik", "Pola Hidup & Kesejahteraan", "Profil Mahasiswa"])
 
 tab1, tab2, tab3 = st_tabs
-
 
 with tab1:
     st.subheader("Scatter Plot: Jam Belajar vs Nilai Akhir")
     st.plotly_chart(scatter_study_gpa(filtered_df), width="stretch")
 
-    st.subheader("Box Plot: Kualitas Diet vs Nilai Akhir")
-    st.plotly_chart(bar_diet_quality_gpa(filtered_df), width="stretch")
-
     st.subheader("Distribusi Nilai Akhir")
     st.plotly_chart(hist_gpa_distribution(filtered_df), width="stretch")
-
 
     st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
     st.subheader("Insight dan Analisis Strategis")
@@ -140,7 +130,6 @@ with tab1:
             else:
                 st.info(text)
 
-
 with tab2:
     st.subheader("Kategori Jam Tidur")
     st.plotly_chart(pie_sleep_category(filtered_df), width="stretch")
@@ -150,7 +139,6 @@ with tab2:
 
     st.subheader("Kecemasan Ujian vs Kerja Paruh Waktu")
     st.plotly_chart(violin_anxiety_job(filtered_df), width="stretch")
-
 
 with tab3:
     st.subheader("Profil Mahasiswa: GPA Tinggi vs Rendah")

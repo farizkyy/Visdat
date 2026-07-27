@@ -10,8 +10,8 @@ from utils import LABEL_MAP, fmt
 
 def _apply_standard_layout(fig, height=None):
 
-    chart_text = "#E2E8F0"  # light slate
-    chart_tick = "#F8FAFC"  # hampir putih
+    chart_text = "#E2E8F0"
+    chart_tick = "#F8FAFC"
 
     layout_updates = dict(
         template="plotly_dark",
@@ -105,77 +105,7 @@ def scatter_study_gpa(df):
 
 
 
-def box_extracurricular_gpa(df):
-    fig = go.Figure()
 
-    categories = df["Extracurricular"].unique()
-    neon_colors = ["#00FFFF", "#00FF00"]
-
-    for i, cat in enumerate(categories):
-        subset = df[df["Extracurricular"] == cat]
-        color = neon_colors[i % len(neon_colors)]
-        rgb_fill = f"rgba(0, 255, 255, 0.12)" if "Tidak" in cat else f"rgba(0, 255, 0, 0.12)"
-
-        fig.add_trace(
-            go.Box(
-                y=subset["Final_Score"],
-                name=cat,
-                marker_color=color,
-                boxpoints=False,
-                line=dict(color=color, width=3),
-                fillcolor=rgb_fill,
-                hovertemplate=(
-                    f"<b>{cat}</b><br>"
-                    "Kuartil 1: %{q1:.2f}<br>"
-                    "Median: %{median:.2f}<br>"
-                    "Kuartil 3: %{q3:.2f}<extra></extra>"
-                ),
-            )
-        )
-
-        fig.add_trace(
-            go.Scatter(
-                y=subset["Final_Score"],
-                x=[cat] * len(subset),
-                mode="markers",
-                marker=dict(
-                    color=color,
-                    size=7,
-                    opacity=0.5,
-                    line=dict(color=color, width=1),
-                ),
-                name=f"{cat} (data)",
-                hovertemplate=f"<b>{cat}</b><br>Final_Score: %{{y:.2f}}<extra></extra>",
-                showlegend=False,
-            )
-        )
-
-    fig.update_layout(
-        xaxis_title="Ekstrakurikuler",
-        yaxis_title="Final_Score",
-        hovermode="closest",
-        xaxis=dict(
-            showgrid=False,
-            zeroline=False,
-            categoryorder="array",
-            categoryarray=["Tidak", "Ya"],
-            title_standoff=15,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
-        ),
-        yaxis=dict(
-            showgrid=False,
-            zeroline=False,
-            title_standoff=10,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
-        ),
-        showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        height=500,
-    )
-    fig = _apply_standard_layout(fig, height=500)
-    return fig
 
 
 def heatmap_correlation(df, cols):
@@ -506,49 +436,4 @@ def pie_sleep_category(df):
     return fig
 
 
-def bar_diet_quality_gpa(df):
-    # NOTE: nama fungsi dipertahankan agar kompatibel dengan `main.py`.
-    categories = sorted(df["Diet_Quality"].dropna().unique())
-    neon_colors = [COLORS["accent2"], COLORS["accent"], COLORS["accent4"], COLORS["accent3"]]
 
-    fig = go.Figure()
-
-    for i, cat in enumerate(categories):
-        subset = df[df["Diet_Quality"] == cat]
-        color = neon_colors[i % len(neon_colors)]
-        fig.add_trace(
-            go.Box(
-                x=[str(cat)] * len(subset),
-                y=subset["Final_Score"],
-                name=f"{cat}",
-                marker_color=color,
-                boxpoints=False,
-                line=dict(color=color, width=2),
-                fillcolor=f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.15)",
-                hovertemplate=(
-                    f"<b>Kualitas Diet:</b> {cat}<br>"
-                    "<b>Nilai Akhir:</b> %{y:.2f}<extra></extra>"
-                ),
-            )
-        )
-
-    fig.update_layout(
-        height=420,
-        xaxis=dict(
-            showgrid=False,
-            zeroline=False,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
-        ),
-        yaxis=dict(
-            showgrid=False,
-            zeroline=False,
-            title_font=dict(size=14),
-            tickfont=dict(size=12),
-        ),
-        showlegend=False,
-        boxmode="group",
-        margin=dict(l=20, r=20, t=40, b=20),
-    )
-    fig = _apply_standard_layout(fig)
-    return fig
